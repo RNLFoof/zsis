@@ -1,0 +1,17 @@
+[
+  "CREATE TABLE sourceable(\
+    fullpath    TEXT  PRIMARY KEY NOT NULL CHECK(fullpath NOT LIKE '%\\%'),\
+    filehash    TEXT              NOT NULL\
+  );",
+  "CREATE TABLE colorhash(\
+    fullpath        TEXT NOT NULL CHECK(fullpath NOT LIKE '%\\%'),\
+    colorhash       TEXT NOT NULL,\
+    settingsrepstr  TEXT NOT NULL,\
+    PRIMARY KEY(fullpath, settingsrepstr)\
+  );",
+  "CREATE TABLE source(\
+    filehash    TEXT NOT NULL,\
+    source      TEXT NOT NULL CHECK(source NOT LIKE '%\\%'),\
+    PRIMARY KEY(filehash, source)\
+  );",
+]
