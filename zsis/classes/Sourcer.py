@@ -1,18 +1,23 @@
 import functools
 import hashlib
+import math
 import os
 import re
 import sqlite3
 import sys
+from typing import Optional
 
 import json5
 from PIL import Image
+from tqdm import tqdm
 
+from zsis.classes.Report import Report
 from zsis.classes.SourcerSettings import SourcerSettings
 
 
 class SourcerException(Exception):
     pass
+
 
 class Sourcer:
     def __init__(self, settings: SourcerSettings, save_path="sources.db") -> None:
@@ -56,7 +61,7 @@ class Sourcer:
 
     # Generating hashes
     def gen_color_hash(self, full_path: str):
-        full_path = polish_path(full_path)
+        full_path = self.polish_path(full_path)
         try:
             scale_x = self.settings.scale_x
             scale_y = self.settings.scale_y
@@ -147,7 +152,7 @@ class Sourcer:
 
     # DB IO
     def get_sourceable(self, full_path: str) -> tuple:
-        full_path = polish_path(full_path)
+        full_path = self.polish_path(full_path)
         return self.cursor.execute('SELECT * FROM sourceable WHERE fullpath=?', (full_path,)).fetchone()
 
     def add_sourceable(self, full_path: str):
@@ -158,16 +163,16 @@ class Sourcer:
         ----------
         full_path
         """
-        full_path = polish_path(full_path)
+        full_path = self.polish_path(full_path)
         run_this = functools.partial(
             self.cursor.execute,
             'INSERT INTO sourceable (fullpath, filehash) VALUES (?,?)',
             (
                 full_path,
-                gen_file_hash(full_path)
+                self.gen_file_hash(full_path)
             )
         )
-        return ignore_unique_violation_of(run_this)
+        return self.ignore_unique_violation_of(run_this)
 
     def get_color_hash(self, full_path: str) -> tuple:
         return self.cursor.execute('SELECT * FROM colorhash WHERE fullpath=? AND settingsrepstr=?',
@@ -183,7 +188,7 @@ class Sourcer:
                 self.settings.rep_str
             )
         )
-        return ignore_unique_violation_of(run_this)
+        return self.ignore_unique_violation_of(run_this)
 
     def ensure_color_hash(self, full_path: str) -> tuple:
         color_hash = self.get_color_hash(full_path)
@@ -202,15 +207,15 @@ class Sourcer:
                 source
             )
         )
-        return ignore_unique_violation_of(run_this)
+        return self.ignore_unique_violation_of(run_this)
 
     def catalog_file(self, path: str, sources: list[str], add_path_to_sources: bool,
-                     _reporter: Optional[Reporter] = None) -> Reporter:
+                     _report: Optional[Report] = None) -> Report:
         """
 
         Parameters
         ----------
-        _reporter
+        _report
         sources
         path
         add_path_to_sources
@@ -219,11 +224,11 @@ class Sourcer:
         -------
 
         """
-        full_path = polish_path(path)
-        if _reporter is None:
-            _reporter = Reporter()
+        full_path = self.polish_path(path)
+        if _report is None:
+            _report = Report()
 
-        file_hash = gen_file_hash(path)
+        file_hash = self.gen_file_hash(path)
         if add_path_to_sources:
             sources.append(os.path.split(full_path)[0])
 
@@ -234,22 +239,22 @@ class Sourcer:
             source_cursor = self.add_source(file_hash, source)
             source_cursors.append(source_cursor)
 
-        _reporter.update_with(sourceable_cursor, color_hash_cursor, source_cursors)
+        _report.update_with(sourceable_cursor, color_hash_cursor, source_cursors)
 
-        return _reporter
+        return _report
 
     def catalog_directory(self, directory: str, add_paths_to_sources: bool = False):
-        directory = polish_path(directory)
-        reporter = Reporter()
+        directory = self.polish_path(directory)
+        report = Report()
         walk_size = sum([len(x[2]) for x in os.walk(directory)])
 
         with tqdm(total=walk_size, desc=f'Cataloging "{directory}"') as prog:
             for root, dirs, files in os.walk(directory):
                 for file in files:
-                    self.catalog_file(os.path.join(root, file), [], add_paths_to_sources, _reporter=reporter)
+                    self.catalog_file(os.path.join(root, file), [], add_paths_to_sources, _report=report)
                     prog.update(1)
 
-        return reporter
+        return report
 
     # Statics
     @classmethod
