@@ -45,18 +45,19 @@ class MyTestCase(unittest.TestCase):
             self.report.color_hashes_added = color_hashes_added
             self.report.sources_added = sources_added
 
-        change_values(0,0,0,0)
+        change_values(0, 0, 0, 0)
         self.assertEqual(str(self.report), "Scanned 0 files: No changes.")
-        change_values(1,0,0,0)
+        change_values(1, 0, 0, 0)
         self.assertEqual(str(self.report), "Scanned 1 files: No changes.")
-        change_values(0,1,0,0)
+        change_values(0, 1, 0, 0)
         self.assertEqual(str(self.report), "Scanned 0 files: Added 1 sourcable(s).")
-        change_values(0,0,1,0)
+        change_values(0, 0, 1, 0)
         self.assertEqual(str(self.report), "Scanned 0 files: Added 1 color hash(es).")
-        change_values(0,0,0,1)
+        change_values(0, 0, 0, 1)
         self.assertEqual(str(self.report), "Scanned 0 files: Added 1 source(s).")
-        change_values(1,2,3,4)
+        change_values(1, 2, 3, 4)
         self.assertEqual(str(self.report), "Scanned 1 files: Added 2 sourcable(s), 3 color hash(es), 4 source(s).")
+
 
 if __name__ == '__main__':
     unittest.main()
