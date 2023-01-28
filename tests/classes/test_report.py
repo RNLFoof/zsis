@@ -1,10 +1,9 @@
-import sqlite3
 import unittest
 from zsis.classes.Report import Report
 from tests.stubs.CursorStub import CursorStub
 
 
-class MyTestCase(unittest.TestCase):
+class ReportTest(unittest.TestCase):
     def setUp(self) -> None:
         self.report = Report()
 
