@@ -3,10 +3,10 @@ from datetime import datetime
 
 from PIL import ImageFile
 
+from zsis.classes.Sourcer import Sourcer
 from zsis.classes.SourcerSettings import SourcerSettings
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 
 # Setting it up with these values:
 # Name to color hash
@@ -14,11 +14,6 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 # File hashes to paths
 
 # Could probably set up a n2p in memory for simplicity
-
-
-
-
-
 
 
 hashsettingsfordeletion = SourcerSettings(
@@ -29,18 +24,6 @@ hashsettingsfordeletion = SourcerSettings(
     True,
     2
 )
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def genn2p(settings, startingwith="", settingsrepstr=None, n2ch=None, ch2fh=None, fh2p=None):
@@ -151,8 +134,6 @@ def updateandtrimhashes(basedir, settings, destroyevildoers, addsources, maxerro
     print("___")
     daves_stupid_backend_function(basedir, settings, destroyevildoers, addsources, maxerrors=maxerrors)
     print("___")
-
-
 
 
 if __name__ == "__main__":
