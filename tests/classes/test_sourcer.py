@@ -1,3 +1,4 @@
+import inspect
 import os
 
 import pytest
@@ -22,8 +23,8 @@ def lenient_sourcer_settings():
 
 
 @pytest.fixture()
-def strict_sourcer(tmp_path):
-    yield Sourcer(strict_sourcer_settings(), os.path.join(tmp_path, "sources.db"))
+def strict_sourcer(tmp_path, strict_sourcer_settings):
+    yield Sourcer(strict_sourcer_settings, os.path.join(tmp_path, "sources.db"))
 
 
 @pytest.fixture()
@@ -32,11 +33,43 @@ def medium_sourcer():
 
 
 @pytest.fixture()
-def lenient_sourcer():
-    yield Sourcer(lenient_sourcer_settings())
+def lenient_sourcer(tmp_path, lenient_sourcer_settings):
+    yield Sourcer(lenient_sourcer_settings, os.path.join(tmp_path, "sources.db"))
 
 
 class TestSourcer:
+    module_path = inspect.getfile(inspect.currentframe())
+    module_dir = os.path.split(module_path)[0]
+    big_hippo_path = os.path.join(module_dir, r"../images/subfolder/big hippo.png")
+    small_hippo_path = os.path.join(module_dir, r"../images/subfolder/small hippo.png")
+    big_white_path = os.path.join(module_dir, r"../images/big white.jpg")
+    small_white_path = os.path.join(module_dir, r"../images/small white.png")
+
+    def test_gen_image_hash(self, strict_sourcer, lenient_sourcer):
+        with strict_sourcer:
+            strict_big_hippo = strict_sourcer.gen_color_hash(self.big_hippo_path)
+            strict_small_hippo = strict_sourcer.gen_color_hash(self.small_hippo_path)
+            strict_big_white = strict_sourcer.gen_color_hash(self.big_white_path)
+            strict_small_white = strict_sourcer.gen_color_hash(self.small_white_path)
+
+        assert strict_big_hippo == "25d5700e229b26e8d7fb5b9c739ed655"
+        assert strict_small_hippo == "16f3a85d2aa5052ce9f04acf064a1db7"
+        assert strict_big_white == strict_small_white
+
+        with lenient_sourcer:
+            lenient_big_hippo = lenient_sourcer.gen_color_hash(self.big_hippo_path)
+            lenient_small_hippo = lenient_sourcer.gen_color_hash(self.small_hippo_path)
+            lenient_big_white = lenient_sourcer.gen_color_hash(self.big_white_path)
+            lenient_small_white = lenient_sourcer.gen_color_hash(self.small_white_path)
+
+        assert lenient_big_hippo == lenient_small_hippo
+        assert lenient_big_white == lenient_small_white
+        assert lenient_big_hippo != lenient_big_white
+
+    def test_gen_file_hash(self):
+        assert Sourcer.gen_file_hash(self.big_hippo_path) \
+               == b'W\xed\xa4\xe5h\xa5\xe4\xe6q\x1e\x9f#\x9do>f\x8d\xaf\xe1u<\xb1\x04x\x17\xea\x8f\xfbu\x1d\x02x'
+
     def test_abs_path_if_local(self):
         google_path = r"https://www.google.com/"
         assert Sourcer.abs_path_if_local(google_path) == google_path

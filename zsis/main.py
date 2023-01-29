@@ -140,5 +140,3 @@ if __name__ == "__main__":
     with Sourcer(hashsettingsfordeletion) as sourcer:
         reporter = sourcer.catalog_directory(r"S:\Images\Misc", add_paths_to_sources=True)
         print(reporter)
-        # sourcer.add_sources(r"S:\Games\Normal stuff\Danganronpa 3\epic greentexts\loli recycle bin.png", ["1", "2", "3"]
-        #                     , True)

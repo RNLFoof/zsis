@@ -1,5 +1,6 @@
 import functools
 import hashlib
+import inspect
 import math
 import os
 import re
@@ -37,7 +38,9 @@ class Sourcer:
         self.con = sqlite3.connect(self.save_path)
         self.cursor = self.con.cursor()
         # Ensure the table exists
-        with open("zsis/json/db_definitions.json5", "rb") as f:
+        module_path = inspect.getfile(inspect.currentframe())
+        module_dir = os.path.split(module_path)[0]
+        with open(os.path.join(module_dir, "../json/db_definitions.json5"), "rb") as f:
             for line in json5.load(f):
                 try:
                     self.cursor.executescript(line)
