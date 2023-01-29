@@ -266,8 +266,16 @@ class Sourcer:
                 raise e
 
     @classmethod
+    def abs_path_if_local(cls, path: str):
+        abs_path = os.path.abspath(path)
+        if os.path.exists(abs_path):
+            return abs_path
+        else:
+            return path
+
+    @classmethod
     def polish_path(cls, path: str) -> str:
-        full_path = os.path.abspath(path)
+        full_path = cls.abs_path_if_local(path)
         full_path = os.path.normpath(full_path)
         full_path = full_path.replace("\\", "/")
         return full_path
