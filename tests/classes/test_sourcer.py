@@ -1,5 +1,6 @@
 import inspect
 import os
+import sqlite3
 
 import pytest
 
@@ -69,6 +70,22 @@ class TestSourcer:
     def test_gen_file_hash(self):
         assert Sourcer.gen_file_hash(self.big_hippo_path) \
                == b'W\xed\xa4\xe5h\xa5\xe4\xe6q\x1e\x9f#\x9do>f\x8d\xaf\xe1u<\xb1\x04x\x17\xea\x8f\xfbu\x1d\x02x'
+
+    def test_ignore_unique_violation_of(self):
+        def raise_exception():
+            raise Exception()
+
+        def raise_integrity_error():
+            raise sqlite3.IntegrityError()
+
+        def raise_unique_integrity_error():
+            raise sqlite3.IntegrityError("UNIQUE")
+
+        with pytest.raises(Exception):
+            Sourcer.ignore_unique_violation_of(raise_exception)
+        with pytest.raises(sqlite3.IntegrityError):
+            Sourcer.ignore_unique_violation_of(raise_integrity_error)
+        Sourcer.ignore_unique_violation_of(raise_unique_integrity_error)
 
     def test_abs_path_if_local(self):
         google_path = r"https://www.google.com/"

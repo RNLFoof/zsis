@@ -6,7 +6,7 @@ import os
 import re
 import sqlite3
 import sys
-from typing import Optional
+from typing import Optional, Callable, Any
 
 import json5
 from PIL import Image
@@ -193,14 +193,6 @@ class Sourcer:
         )
         return self.ignore_unique_violation_of(run_this)
 
-    def ensure_color_hash(self, full_path: str) -> tuple:
-        color_hash = self.get_color_hash(full_path)
-        if color_hash is None:
-            self.add_color_hash(full_path)
-            return self.get_color_hash(full_path)
-        else:
-            return color_hash
-
     def add_source(self, file_hash: bytes, source: str):
         run_this = functools.partial(
             self.cursor.execute,
@@ -261,7 +253,7 @@ class Sourcer:
 
     # Statics
     @classmethod
-    def ignore_unique_violation_of(cls, function: functools.partial):
+    def ignore_unique_violation_of(cls, function: Callable[[], Any]):
         try:
             return function()
         except sqlite3.IntegrityError as e:  # This will happen if it exists already
